@@ -1,0 +1,399 @@
+-- WYVERN REANIMATION v1
+
+--[[
+CREDITS TO: Emper, MyWorld
+For helping out with the Net
+
+CREATED BY: spectrumglitcher (Sticks)
+
+11263254795,11159410305,12344545199,12344591101
+use any hat that covers the torso
+
+]]
+
+-- OPTIONS
+
+local FlingOptions = {
+FlingEnabled = true;
+ScanFling = true;
+ScanFlingRange = 5;
+}
+local NetOptions = {
+DefaultYVelocity=25.1;	-- 25.1
+AntiJitterValue=10; -- 10
+}
+local MiscOptions = {
+DeathLocationSpawn = true;
+InstantRespawn = true; -- Works in certain games
+}
+local AccessoriesTable = {
+leftarmTexture = "rbxassetid://12344207341", leftarmMesh = "rbxassetid://12344207333";
+rightarmTexture = "rbxassetid://12344206675", rightarmMesh = "rbxassetid://12344206657";
+leftlegTexture = "http://www.roblox.com/asset/?id=11263219250", leftlegMesh = "rbxassetid://11263221350";
+rightlegTexture = "http://www.roblox.com/asset/?id=11159284657", rightlegMesh = "rbxassetid://11159370334";
+}
+
+
+
+local Cam=workspace.CurrentCamera
+local Pl=game.Players.LocalPlayer
+local Ch=Pl.Character
+local Rs=game["Run Service"]
+local M=Pl:GetMouse()
+local Fling = {}
+local AllConections = {}
+local HeartbeatTable = {}
+local camcon0, camcon1 = nil, nil
+local CurrentCameraCFrame=Cam.CFrame
+local cf=CFrame.new
+local v3=Vector3.new
+local sin=math.sin
+local angles=CFrame.Angles
+local rad=math.rad
+local cl=os.clock
+local rand=math.random
+
+Ch.Archivable=true
+local FC=Ch:Clone()
+Ch.Archivable=false
+FC.Parent=workspace.Terrain
+local hrp=FC:WaitForChild("HumanoidRootPart")
+local hum=FC:FindFirstChildOfClass("Humanoid")
+
+for _, x in pairs(FC:GetDescendants()) do
+	if x:IsA("BasePart")  then
+		x.CanCollide=false x.CanTouch=false x.CanQuery=false x.Transparency=1
+	end
+	if x.Parent.ClassName == "Accessory"  and x:IsA("BasePart") then
+		x.Transparency=0.75
+	end
+end
+FC.Head.face.Transparency=1
+
+
+
+function Weld(P0,P1,C0)
+	local w=Instance.new("Weld",P0)
+	w.Part0=P0
+	w.Part1=P1
+	w.C0=C0
+	return w
+end
+
+function Announce(Message, Time)
+	game:FindFirstChildOfClass("StarterGui"):SetCore("SendNotification", {
+		Title = "Notify";
+		Text = Message;
+		Icon = "rbxassetid://0";
+		Duration = Time;
+	})
+end
+
+function GetPartFromIDs(TX,MS)
+	local ReanHandle=nil
+	for _, x in pairs(FC:GetDescendants()) do
+		if x:IsA("SpecialMesh") then
+			if x.MeshId == MS and x.TextureId == TX then
+				ReanHandle=x.Parent
+			end
+		end
+	end
+	return ReanHandle
+end
+
+function Reanimate(Character)
+	--Character:FindFirstChildOfClass("Humanoid").RootPart.CFrame=FC:FindFirstChildOfClass("Humanoid").RootPart.CFrame*cf(rand(-30,30),rand(-30,30),rand(-30,30)
+	for _, x in pairs(Character:GetChildren()) do
+		if x:IsA("BasePart")  then
+			x.CanCollide=false x.CanTouch=false x.CanQuery=false x.Transparency=1
+			x.Massless=true 
+		end
+		if x:IsA("Accessory") and x:FindFirstChildOfClass("Part") then
+			local Handle=x:WaitForChild("Handle")
+			local SpecialMesh = Handle:FindFirstChildOfClass("SpecialMesh")
+			local TX,MS = SpecialMesh.TextureId, SpecialMesh.MeshId
+			local ReanHandle=nil
+			Handle:BreakJoints()
+			for _, x in pairs(FC:GetDescendants()) do
+				if x:IsA("SpecialMesh") then
+					if x.MeshId == MS and x.TextureId == TX then
+						ReanHandle=x.Parent
+					end
+				end
+			end
+			if ReanHandle ~= nil then
+				local Cone=nil
+				Cone=Rs.Heartbeat:Connect(function()
+					if (Handle and ReanHandle) ~= nil then
+						if identifyexecutor then
+							--settings().Physics.AllowSleep=false
+							if setsimulationradius then
+								setsimulationradius(1000, 1000)
+							end
+							if shp then
+								shp(Pl, "SimulationRadius", 1000)
+							end
+							if sethiddenproperty then
+								sethiddenproperty(Pl, "SimulationRadius", 1000)
+								sethiddenproperty(Pl, "MaxSimulationRadius", 1000)
+							end
+							--settings().Physics.PhysicsEnvironmentalThrottle=Enum.EnviromentalPhysicsThrottle.Disabled
+						end
+						if Handle.ReceiveAge == 0 then
+							Handle.RotVelocity =  v3(sin(cl()*15), sin(cl()*15+1.047), sin(cl()*15+2.094))
+							Handle.Velocity=v3(0,NetOptions.DefaultYVelocity,0)+ReanHandle.Velocity*v3(NetOptions.AntiJitterValue,0,NetOptions.AntiJitterValue)
+							Handle.CanCollide=false
+							Handle.CFrame = ReanHandle.CFrame + v3(0.0015*sin(cl()*15), 0.0015*sin(cl()*15+1.047), 0.0015*sin(cl()*15+2.094))
+							--Handle.CFrame = ReanHandle.CFrame + v3(0.003*sin(cl()*15), 0.003*sin(cl()*15+1.047), 0.003*sin(cl()*15+2.094))
+						end
+						--Handle.CFrame= ReanHandle.CFrame + v3(0.02*sin(cl()*15), 0.02*sin(cl()*15+1.047), 0.02*sin(cl()*15+2.094))
+					end
+				end)
+				table.insert(HeartbeatTable, Cone)
+			end
+		end
+	end
+	Character:FindFirstChildOfClass("Humanoid"):SetStateEnabled(Enum.HumanoidStateType.Dead,true)
+	Character:FindFirstChildOfClass("Humanoid").Health=0
+end
+
+Ch:FindFirstChildOfClass("Humanoid").RootPart.CFrame=hrp.CFrame*cf(rand(-10, 10), 0, rand(-10, 10)) * angles(rad(90), 0 , 0)
+task.wait(0.025)
+Reanimate(Ch)
+Pl.Character=FC
+workspace.CurrentCamera.CameraSubject=FC
+local ReanCon = Pl.CharacterAdded:Connect(function(MOD)
+	if MOD ~= FC then
+		Cam.CameraSubject=hum
+		task.spawn(function()
+			Cam:GetPropertyChangedSignal("CFrame"):Wait()
+			Cam.CFrame = CurrentCameraCFrame
+		end)
+		for _, x in pairs(MOD:GetDescendants()) do
+			if x:IsA("BasePart") and x.Parent.ClassName ~= "Accessory" then
+				x.Size=v3(0.001,0.001,0.001)
+				x.CanCollide=false
+				x.Velocity=v3(0,0,0)
+			end
+		end
+		for _, x in pairs(HeartbeatTable) do
+			if x then
+				x:Disconnect()
+				x=nil
+			end
+		end
+		MOD:WaitForChild("Humanoid")
+		task.wait()
+		Cam.CameraSubject=hum
+		task.spawn(function()
+			Cam:GetPropertyChangedSignal("CFrame"):Wait()
+			Cam.CFrame = CurrentCameraCFrame
+		end)
+		Pl.Character=FC
+		Ch=MOD
+		local Root=MOD:WaitForChild("HumanoidRootPart")
+		local PepperStepper = Rs.Stepped:Connect(function()
+			for _, x in pairs(MOD:GetChildren()) do
+				if x:IsA("BasePart")  then
+					x.Size=v3(0.001,0.001,0.001)
+					x.CanCollide=false
+					x.Velocity=v3(0,0,0)
+				end
+			end
+		end)
+		for _, x in pairs(MOD:GetChildren()) do
+			if x:IsA("BasePart") then
+				x.CanCollide=false
+				x.CFrame=hrp.CFrame
+				x.Velocity=v3(0,0,0)
+			end
+			if x:IsA("ForceField") then
+				x:Destroy()
+			end
+		end
+		if FlingOptions.FlingEnabled == true then
+		for _, x in pairs(Fling) do
+			if x:IsA("Humanoid") and x.Parent ~= nil and x ~= nil then
+				local hl=x.Parent:FindFirstChildOfClass("Highlight")
+				if hl then
+					hl:Destroy()
+					end
+					local XRoot=x.RootPart
+				for i=1, 50 do
+					if x then
+						for _, x in pairs(MOD:GetDescendants()) do
+							if x:IsA("BasePart") then
+								x.Size=v3(0.001,0.001,0.001)
+							end
+						end
+						if x.RootPart ~= nil then
+							if Root.CFrame.Y > workspace.FallenPartsDestroyHeight * 200  and x.RootPart.Velocity.Magnitude < x.WalkSpeed * x.JumpHeight then
+								Rs.Heartbeat:Wait()
+								if x.RootPart ~= nil then
+									if x.RootPart.Velocity.Magnitude > x.WalkSpeed - 2 then
+										Root.RotVelocity=v3(8500, 6500, 8500) 
+										Root.CFrame=XRoot.CFrame*cf(rand(-x.WalkSpeed / 4, x.WalkSpeed / 4),rand(-x.WalkSpeed / 4, x.WalkSpeed / 4),rand(-x.WalkSpeed / 4, x.WalkSpeed / 4)) + v3(0.004*sin(cl()*15), 0.004*sin(cl()*15+1.047), 0.004*sin(cl()*15+2.094))
+									else
+										Root.RotVelocity=v3(8500, 6500, 8500)
+										Root.CFrame=x.RootPart.CFrame + v3(0.004*sin(cl()*15), 0.004*sin(cl()*15+1.047), 0.004*sin(cl()*15+2.094))
+									end
+								end
+							else
+								Root.CFrame=hrp.CFrame*cf(0, 5, 0)
+								Root.Velocity=v3(0,0,0)
+								Root.RotVelocity=v3(0,0,0)
+							end
+						end
+					end
+				end
+			end
+		end
+	if Root.Velocity.Magnitude > 150 then
+			for i=1, 20 do
+				Rs.RenderStepped:Wait()
+				Root.CFrame=hrp.CFrame*cf(0, 5, 0)
+				Root.Velocity=v3(0,0,0)
+				Root.RotVelocity=v3(0,0,0)
+			end
+		end
+	end
+		table.clear(Fling)
+		Root.CFrame=hrp.CFrame*cf(rand(-10, 10), 0, rand(-10, 10)) * angles(rad(90), 0 , 0)
+		task.wait(0.025)
+		Reanimate(MOD)
+		PepperStepper:Disconnect()
+		PepperStepper=nil
+		wait(game.Players.RespawnTime-0.000001)
+		CurrentCameraCFrame = Cam.CFrame
+	end
+end)
+
+
+local LA=GetPartFromIDs(AccessoriesTable.leftarmTexture, AccessoriesTable.leftarmMesh)
+local RA=GetPartFromIDs(AccessoriesTable.rightarmTexture, AccessoriesTable.rightarmMesh)
+
+local LL=GetPartFromIDs(AccessoriesTable.leftlegTexture, AccessoriesTable.leftlegMesh)
+local RL=GetPartFromIDs(AccessoriesTable.rightlegTexture, AccessoriesTable.rightlegMesh)
+
+	
+
+LA:BreakJoints() RA:BreakJoints() LL:BreakJoints() RL:BreakJoints()
+
+Weld(LA, FC:WaitForChild("Left Arm"), CFrame.new(0,0,0)*CFrame.Angles(math.rad(117), math.rad(0), math.rad(0)))
+Weld(RA, FC:WaitForChild("Right Arm"), CFrame.new(0,0,0)*CFrame.Angles(math.rad(117), math.rad(0), math.rad(0)))
+
+Weld(LL, FC:WaitForChild("Left Leg"), CFrame.new(0,0,0)*CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)))
+Weld(RL, FC:WaitForChild("Right Leg"), CFrame.new(0,0,0)*CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)))
+
+FC:FindFirstChild("Animate"):Destroy()
+Ch:FindFirstChild("Animate"):Clone().Parent=FC
+
+
+
+
+-- Flinging
+
+if FlingOptions.FlingEnabled == true then
+	local crap_1=M.Button1Down:Connect(function()
+	if FlingOptions.ScanFling == true then
+			local Pos=M.Hit.p
+			for _, x in pairs(workspace:GetDescendants()) do 
+				if x:IsA("Humanoid") and x.RootPart ~= nil and x ~= hum then
+					if (x.RootPart.Position - Pos).Magnitude < FlingOptions.ScanFlingRange and x.Parent ~= FC and x.Parent ~= Ch then
+						local IsExist = false
+						for _, v in pairs(Fling) do
+							if v == x then
+								IsExist=true
+							end
+						end
+						if IsExist == false then
+							table.insert(Fling, x)
+							local HG=Instance.new("Highlight", x.Parent)
+							HG.FillColor=Color3.new(1,0,0)
+							break
+						end
+					end
+				end
+			end
+		else
+		local Tar=M.Target
+		if Tar ~= nil  then
+				if Tar.Parent:FindFirstChildOfClass("Humanoid")  then
+					local hum=Tar.Parent:FindFirstChildOfClass("Humanoid")
+					local IsExist = false
+					for _, v in pairs(Fling) do
+						if v == hum then
+							IsExist=true
+						end
+					end
+				if IsExist == false then
+					table.insert(Fling, hum)
+					local HG=Instance.new("Highlight", hum.Parent)
+					HG.FillColor=Color3.new(1,0,0)
+				end	
+			end
+		end
+	end	
+end)
+
+local crap_2=M.KeyDown:Connect(function(K)
+	if K == ";" then
+		for _, x in pairs(Fling) do
+			if x:IsA("Humanoid") and x.Parent ~= nil then
+				local hl=x.Parent:FindFirstChildOfClass("Highlight")
+				if hl then
+					hl:Destroy()
+				end
+			end
+		end
+		table.clear(Fling)
+	end
+	end)
+	table.insert(AllConections,crap_1) 
+	table.insert(AllConections,crap_2)
+end	
+
+
+
+
+
+
+-- More crappy tables
+
+table.insert(AllConections,ReanCon)
+
+-- Stopping
+local KD=nil
+KD = M.KeyDown:Connect(function(K)
+	if K == "-" and FC ~= nil then
+		local Pos=CFrame.new(0,0,0)
+		if MiscOptions.DeathLocationSpawn == true then
+			Pos=FC:FindFirstChildOfClass("Humanoid").RootPart.CFrame
+		end
+		Pl.Character=Ch
+		workspace.CurrentCamera.CameraSubject=Ch:FindFirstChildOfClass("Humanoid")
+		FC:Destroy() 
+		for _, x in pairs(AllConections) do
+			if x then
+				x:Disconnect()
+				x=nil
+			end
+		end
+		if Pl:FindFirstChild("Respawn") and MiscOptions.InstantRespawn == true then
+			Pl:FindFirstChild("Respawn"):FireServer()
+			task.wait(0.25)
+			Pl.Character:WaitForChild("HumanoidRootPart").CFrame = Pos
+		end
+		if MiscOptions.DeathLocationSpawn == true and MiscOptions.InstantRespawn == false then
+			task.wait(game.Players.RespawnTime+0.5)
+			Pl.Character:WaitForChild("Humanoid").RootPart.CFrame=Pos
+		end
+		KD:Disconnect()
+		KD=nil
+	end
+end)
+
+local ff=FC:FindFirstChildOfClass("ForceField")
+if ff then
+	ff:Destroy()
+end 
